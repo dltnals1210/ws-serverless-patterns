@@ -22,13 +22,10 @@ def get_stack_outputs(stack_name):
 
 def create_cognito_accounts():
     result = {}
-    sm_client = boto3.client('secretsmanager')
     idp_client = boto3.client('cognito-idp')
-    # create regular user account
-    sm_response = sm_client.get_random_password(ExcludeCharacters='"''`[]{}():;,$/\\<>|=&',
-                                                RequireEachIncludedType=True)
+    # Use fixed passwords for testing instead of random generation
     result["regularUserName"] = "regularUser@example.com"
-    result["regularUserPassword"] = sm_response["RandomPassword"]
+    result["regularUserPassword"] = "TempPassword123!"
     try:
         idp_client.admin_delete_user(UserPoolId=globalConfig["UserPool"],
                                      Username=result["regularUserName"])
@@ -56,15 +53,13 @@ def create_cognito_accounts():
     result["regularUserAccessToken"] = idp_response["AuthenticationResult"]["AccessToken"]
     result["regularUserRefreshToken"] = idp_response["AuthenticationResult"]["RefreshToken"]
     # create administrative user account
-    sm_response = sm_client.get_random_password(ExcludeCharacters='"''`[]{}():;,$/\\<>|=&',
-                                                RequireEachIncludedType=True)
     result["adminUserName"] = "adminUser@example.com"
-    result["adminUserPassword"] = sm_response["RandomPassword"]
+    result["adminUserPassword"] = "AdminPassword123!"
     try:
         idp_client.admin_delete_user(UserPoolId=globalConfig["UserPool"],
                                      Username=result["adminUserName"])
     except idp_client.exceptions.UserNotFoundException:
-        print('Regular user haven''t been created previously')
+        print('Admin user haven''t been created previously')
     idp_response = idp_client.sign_up(
         ClientId=globalConfig["UserPoolClient"],
         Username=result["adminUserName"],
